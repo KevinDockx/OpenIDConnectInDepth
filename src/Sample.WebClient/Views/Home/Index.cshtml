@@ -1,0 +1,19 @@
+﻿@model Sample.WebClient.ViewModels.CallApiViewModel
+
+<div class="container">
+    @foreach (var claim in User.Claims)
+    {
+        <div class="h5">@claim.Type</div>
+        <div class="h5">@claim.Value</div>
+    }
+
+    <div>
+        <a asp-action="CallApi" asp-controller="Home" class="btn btn-primary">Call API</a>
+    </div>
+
+    <div class="h4">Response from API</div>
+    @foreach (var claimString in Model.ClaimsFromApi)
+    {
+        <div class="h5">@claimString</div>
+    }
+</div> 
