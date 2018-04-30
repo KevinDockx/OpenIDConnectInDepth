@@ -1,0 +1,15 @@
+<div class='panel panel-primary'>
+  <div class='panel-heading'>
+    Your claims
+  </div>
+
+  <div class='panel-body'>
+    <div *ngFor="let claim of claims">
+      <div>{{claim}}</div>
+    </div>
+  </div>
+
+  <a class="btn btn-primary" (click)="callApi()">
+    Call API
+  </a>
+</div>

@@ -1,0 +1,21 @@
+<div>
+    <nav class='navbar navbar-default'>
+        <div class='container-fluid'>
+            <a class='navbar-brand'>{{ title }}</a>
+            <ul class='nav navbar-nav'>
+                <li>
+                    <a [routerLink]="['/home']">Home</a>
+                </li>
+                <li>
+                    <a [routerLink]="['/about']">About</a>
+                </li>
+                <li *ngIf='openIdConnectService.userAvailable'>
+                    <a (click)="openIdConnectService.triggerSignOut()">Sign out</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <div class='container'>
+        <router-outlet></router-outlet>
+    </div>
+</div>
