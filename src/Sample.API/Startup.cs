@@ -26,6 +26,8 @@ namespace Sample.API
         {
             services.AddMvc();
 
+            services.AddCors();
+
             services.AddAuthentication(IdentityServerAuthenticationDefaults.AuthenticationScheme)
              .AddIdentityServerAuthentication(options =>
              {
@@ -44,6 +46,9 @@ namespace Sample.API
             {
                 app.UseDeveloperExceptionPage();
             }
+
+            // allow CORS requests (JavaScript) - any origin for demo purposes
+            app.UseCors(c => c.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
 
             app.UseAuthentication();
 

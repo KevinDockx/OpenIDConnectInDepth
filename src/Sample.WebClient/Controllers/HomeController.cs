@@ -25,14 +25,14 @@ namespace Sample.WebClient.Controllers
         }
 
         // GET: Home
-        public async Task<ActionResult> Index()
+        public async Task<IActionResult> Index()
         {
             await WriteOutIdentityInformation();
             return View(new CallApiViewModel());
         }
 
 
-        public async Task<ActionResult> CallApi()
+        public async Task<IActionResult> CallApi()
         {
             // call the API
             var httpClient = await _sampleHttpClient.GetClient();
@@ -103,6 +103,18 @@ namespace Sample.WebClient.Controllers
 
             await HttpContext.SignOutAsync("Cookies");
             await HttpContext.SignOutAsync("oidc");
+        }
+
+        [AllowAnonymous]
+        public async Task<IActionResult> IDPTriggeredLogout()
+        {
+            if (User.Identity.IsAuthenticated)
+            {
+                await HttpContext.SignOutAsync("Cookies");
+                await HttpContext.SignOutAsync("oidc");             
+            }
+
+            return NoContent();
         }
 
         public async Task WriteOutIdentityInformation()

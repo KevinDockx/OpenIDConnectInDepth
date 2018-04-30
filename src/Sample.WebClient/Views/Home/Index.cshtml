@@ -1,4 +1,7 @@
 ﻿@model Sample.WebClient.ViewModels.CallApiViewModel
+@using Sample.WebClient.Services
+
+@inject ITenantSelector<Tenant> TenantSelector
 
 <div class="container">
     @foreach (var claim in User.Claims)
@@ -8,7 +11,15 @@
     }
 
     <div>
-        <a asp-action="CallApi" asp-controller="Home" class="btn btn-primary">Call API</a>
+        @if (TenantSelector.Select().Identifier == "whitehouse")
+        {
+            <a asp-action="CallApi" asp-controller="Home" class="btn btn-primary" 
+               style="background: #8d6121; border: #8d6121">Call API</a>
+        }
+        else
+        {
+            <a asp-action="CallApi" asp-controller="Home" class="btn btn-primary">Call API</a>
+        }
     </div>
 
     <div class="h4">Response from API</div>

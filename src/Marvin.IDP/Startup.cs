@@ -1,10 +1,14 @@
-﻿using Microsoft.AspNetCore.Builder;
+﻿using IdentityServer4;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using System.Collections.Generic;
 using System.Reflection;
+using System.Security.Claims;
+using System.Threading.Tasks;
 
 namespace Marvin.IDP
 {
@@ -22,6 +26,8 @@ namespace Marvin.IDP
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddMvc();
+
+            services.AddCors();
 
             var identityServerDBConnectionString =
                 Configuration["ConnectionStrings:IdentityServerDBConnectionString"];
@@ -48,6 +54,35 @@ namespace Marvin.IDP
                 })
                 .AddExtensionGrantValidator<OnBehalfOfGrantValidator>();
 
+
+
+            services.AddAuthentication()
+                .AddGoogle("Google", options =>
+                {
+                    options.SignInScheme = IdentityServerConstants.ExternalCookieAuthenticationScheme;
+
+                    options.ClientId = "925417044554-bsjt1rtt0npu421equo2elurn6h9639i.apps.googleusercontent.com";
+                    options.ClientSecret = "AEEo2KVJwwP-gECRgcvTgocj";
+                    options.Events = new Microsoft.AspNetCore.Authentication.OAuth.OAuthEvents()
+                    {
+                        OnCreatingTicket = context =>
+                        {
+                            var claims = new List<Claim>();
+                            claims.AddRange(context.Principal.Claims);
+                            claims.Add(new Claim("tenant", "belgianstatedepartment"));
+
+                            // overwrite the old principal 
+                            context.Principal = new ClaimsPrincipal(new ClaimsIdentity(claims, "Google"));
+                         
+                            return Task.CompletedTask;
+                        },
+                        OnTicketReceived = context =>
+                        {
+                            var test = context.Principal;
+                            return Task.CompletedTask;
+                        }
+                    };
+                });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -59,10 +94,13 @@ namespace Marvin.IDP
                 app.UseDeveloperExceptionPage();
             }
 
+            // allow CORS requests (JavaScript) - any origin for demo purposes
+            app.UseCors(c => c.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
+
             app.UseIdentityServer();
 
             app.UseStaticFiles();
-
+            
             app.UseMvcWithDefaultRoute();
         }
     }

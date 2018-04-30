@@ -1,5 +1,6 @@
 ﻿using IdentityModel;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -8,6 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using Sample.WebClient.Services;
 using System.IdentityModel.Tokens.Jwt;
+using System.Threading.Tasks;
 
 namespace Sample.WebClient
 {
@@ -24,15 +26,18 @@ namespace Sample.WebClient
         public void ConfigureServices(IServiceCollection services)
         {
             // Add framework services.
-            services.AddMvc();
- 
+           services.AddMvc();
+
             // register an IHttpContextAccessor so we can access the current
             // HttpContext in services by injecting it
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
             // register an ISampleHttpClient
             services.AddScoped<ISampleHttpClient, SampleHttpClient>();
-            
+
+            // register the TenantSelector scoped (so it's created once per request)
+            services.AddScoped<ITenantSelector<Tenant>, TenantSelector>();
+
             services.AddAuthentication(options =>
             {
                 options.DefaultScheme = "Cookies";
@@ -69,6 +74,30 @@ namespace Sample.WebClient
                       RoleClaimType = JwtClaimTypes.Role,
                   };
 
+                  options.Events = new OpenIdConnectEvents
+                  {
+                      OnRedirectToIdentityProvider = context =>
+                      {
+                          // pass tenant on all authentication request to 
+                          // diversify at UI level (eg: other IDPs, user stores, ...)   
+
+                          if (context.ProtocolMessage.RequestType ==
+                            Microsoft.IdentityModel.Protocols.OpenIdConnect.OpenIdConnectRequestType.Authentication)
+                          {
+                              //tenant:name_of_tenant 
+                              var tenantSelector = context.HttpContext
+                                .RequestServices.GetService<ITenantSelector<Tenant>>();
+
+                              var currentTenant = tenantSelector.Select();
+
+                              if (currentTenant != null)
+                              {
+                                  context.ProtocolMessage.AcrValues = $"tenant:{currentTenant.Identifier}";
+                              }
+                          }
+                          return Task.CompletedTask;
+                      }
+                  };
               });
         }
 

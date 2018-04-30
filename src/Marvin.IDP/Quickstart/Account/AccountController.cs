@@ -275,7 +275,8 @@ namespace IdentityServer4.Quickstart.UI
         /*****************************************/
         private async Task<LoginViewModel> BuildLoginViewModelAsync(string returnUrl)
         {
-            var context = await _interaction.GetAuthorizationContextAsync(returnUrl);
+            var context = await _interaction.GetAuthorizationContextAsync(returnUrl);           
+                        
             if (context?.IdP != null)
             {
                 // this is meant to short circuit the UI and only trigger the one external IdP
@@ -315,6 +316,35 @@ namespace IdentityServer4.Quickstart.UI
                 }
             }
 
+            // if tenant = WhiteHouse, use local auth (Frank & Claire Underwood)
+            // otherwise, use an external provider (Google auth in our case) 
+
+            if (context.Tenant.ToLowerInvariant() == "whitehouse")
+            {
+                return new LoginViewModel
+                {
+                    AllowRememberLogin = AccountOptions.AllowRememberLogin,
+                    EnableLocalLogin = allowLocal && AccountOptions.AllowLocalLogin,
+                    ReturnUrl = returnUrl,
+                    Username = context?.LoginHint,
+                    // don't allow external providers
+                    ExternalProviders = new List<ExternalProvider>()
+                };
+            }
+            else
+            {
+                // don't allow local login
+                return new LoginViewModel
+                {
+                    AllowRememberLogin = AccountOptions.AllowRememberLogin,
+                    EnableLocalLogin = false,
+                    ReturnUrl = returnUrl,
+                    Username = context?.LoginHint,
+                    ExternalProviders = providers.ToArray()
+                };
+            }
+
+            // original code
             return new LoginViewModel
             {
                 AllowRememberLogin = AccountOptions.AllowRememberLogin,

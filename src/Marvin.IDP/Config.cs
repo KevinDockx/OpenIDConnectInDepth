@@ -21,7 +21,8 @@ namespace Marvin.IDP
                     Claims = new List<Claim>
                     {
                         new Claim("given_name", "Frank"),
-                        new Claim("family_name", "Underwood")
+                        new Claim("family_name", "Underwood"),
+                        new Claim("tenant", "whitehouse")
                     }
                 },
                 new TestUser
@@ -33,7 +34,8 @@ namespace Marvin.IDP
                     Claims = new List<Claim>
                     {
                         new Claim("given_name", "Claire"),
-                        new Claim("family_name", "Underwood")                  
+                        new Claim("family_name", "Underwood"),
+                        new Claim("tenant", "whitehouse")
                     }
                 }
             };
@@ -44,7 +46,7 @@ namespace Marvin.IDP
             return new List<IdentityResource>
             {
                 new IdentityResources.OpenId(),
-                new IdentityResources.Profile()      
+                new IdentityResources.Profile()
             };
         }
 
@@ -53,13 +55,13 @@ namespace Marvin.IDP
             return new List<ApiResource>
             {
                 //new ApiResource("sampleapi", "Sample API", new string [] {"given_name", "family_name"}),
-                new ApiResource("samplesecondapi", "Sample Second API", new string [] {"given_name", "family_name"}),
+                new ApiResource("samplesecondapi", "Sample Second API", new string [] {"given_name", "family_name", "tenant"}),
 
                 // api secret for reference token
-                new ApiResource("sampleapi", "Sample API", new string [] {"given_name", "family_name"})
+                new ApiResource("sampleapi", "Sample API", new string [] {"given_name", "family_name", "tenant"})
                 {
                     ApiSecrets = { new Secret("apisecret".Sha256()) }
-                } 
+                }
             };
         }
 
@@ -74,28 +76,33 @@ namespace Marvin.IDP
                     AllowedGrantTypes = GrantTypes.Hybrid,
 
                     AccessTokenType = AccessTokenType.Reference,
-                  
+                    RequireConsent = false,
+
                     AllowOfflineAccess = true,
+
+                    FrontChannelLogoutUri = "https://localhost:44318/Home/IDPTriggeredLogout",
 
                     RedirectUris = new List<string>()
                     {
-                        "https://localhost:44318/signin-oidc"
+                        "https://localhost:44318/signin-oidc",
+                        "https://localhost:44319/signin-oidc"
                     },
                     AllowedScopes =
                     {
                         IdentityServerConstants.StandardScopes.OpenId,
                         IdentityServerConstants.StandardScopes.Profile,
-                        "sampleapi"           
+                        "sampleapi"
                     },
                     ClientSecrets =
                     {
                         new Secret("secret".Sha256())
                     },
-
+                    
                     PostLogoutRedirectUris =
                     {
-                        "https://localhost:44318/signout-callback-oidc"
-                    }               
+                        "https://localhost:44318/signout-callback-oidc",
+                        "https://localhost:44319/signout-callback-oidc"
+                    }
                 },
 
                 new Client
@@ -103,12 +110,14 @@ namespace Marvin.IDP
                     ClientName = "Sample User Agent Client",
                     ClientId = "sampleuseragentclient",
                     AllowedGrantTypes = GrantTypes.Implicit,
-
                     AccessTokenType = AccessTokenType.Reference,
-                    
+                    AllowAccessTokensViaBrowser = true,
+                    RequireConsent = false,
+
                     RedirectUris = new List<string>()
                     {
-                        "https://localhost:4200/signin-oidc"
+                        "https://localhost:4200/signin-oidc",
+                        "https://localhost:4200/redirect-silentrenew"
                     },
                     AllowedScopes =
                     {
@@ -118,7 +127,7 @@ namespace Marvin.IDP
                     },
                     PostLogoutRedirectUris =
                     {
-                        "https://localhost:4200/signout-callback-oidc"
+                        "https://localhost:4200/"
                     }
                 },
 
@@ -127,7 +136,8 @@ namespace Marvin.IDP
                     ClientName = "Sample On Behalf Of Client",
                     ClientId = "sampleonbehalfofclient",
                     AllowedGrantTypes = new[] { "urn:ietf:params:oauth:grant-type:jwt-bearer" },
-                    
+                    RequireConsent = false,
+
                     AllowedScopes =
                     {
                         IdentityServerConstants.StandardScopes.OpenId,
