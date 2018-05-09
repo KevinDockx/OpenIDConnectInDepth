@@ -128,8 +128,6 @@ namespace Sample.WebClient.Services
                     tokenResult.Exception);
             }
         }
-
-
     }
 }
 

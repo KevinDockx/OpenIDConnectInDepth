@@ -30,8 +30,7 @@ namespace Sample.WebClient.Controllers
             await WriteOutIdentityInformation();
             return View(new CallApiViewModel());
         }
-
-
+        
         public async Task<IActionResult> CallApi()
         {
             // call the API

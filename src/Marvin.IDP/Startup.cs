@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Security.Claims;
@@ -53,9 +52,7 @@ namespace Marvin.IDP
                     options.EnableTokenCleanup = true;
                 })
                 .AddExtensionGrantValidator<OnBehalfOfGrantValidator>();
-
-
-
+            
             services.AddAuthentication()
                 .AddGoogle("Google", options =>
                 {
@@ -73,7 +70,7 @@ namespace Marvin.IDP
 
                             // overwrite the old principal 
                             context.Principal = new ClaimsPrincipal(new ClaimsIdentity(claims, "Google"));
-                         
+
                             return Task.CompletedTask;
                         },
                         OnTicketReceived = context =>
@@ -86,8 +83,7 @@ namespace Marvin.IDP
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env, 
-            ILoggerFactory loggerFactory)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
             if (env.IsDevelopment())
             {
@@ -100,7 +96,7 @@ namespace Marvin.IDP
             app.UseIdentityServer();
 
             app.UseStaticFiles();
-            
+
             app.UseMvcWithDefaultRoute();
         }
     }

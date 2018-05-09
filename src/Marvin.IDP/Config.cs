@@ -54,11 +54,12 @@ namespace Marvin.IDP
         {
             return new List<ApiResource>
             {
-                //new ApiResource("sampleapi", "Sample API", new string [] {"given_name", "family_name"}),
-                new ApiResource("samplesecondapi", "Sample Second API", new string [] {"given_name", "family_name", "tenant"}),
+                new ApiResource("samplesecondapi", "Sample Second API", 
+                    new string [] {"given_name", "family_name", "tenant"}),
 
                 // api secret for reference token
-                new ApiResource("sampleapi", "Sample API", new string [] {"given_name", "family_name", "tenant"})
+                new ApiResource("sampleapi", "Sample API", 
+                    new string [] {"given_name", "family_name", "tenant"})
                 {
                     ApiSecrets = { new Secret("apisecret".Sha256()) }
                 }
@@ -74,10 +75,8 @@ namespace Marvin.IDP
                     ClientName = "Sample Web Client",
                     ClientId = "samplewebclient",
                     AllowedGrantTypes = GrantTypes.Hybrid,
-
                     AccessTokenType = AccessTokenType.Reference,
                     RequireConsent = false,
-
                     AllowOfflineAccess = true,
 
                     FrontChannelLogoutUri = "https://localhost:44318/Home/IDPTriggeredLogout",
@@ -97,7 +96,7 @@ namespace Marvin.IDP
                     {
                         new Secret("secret".Sha256())
                     },
-                    
+
                     PostLogoutRedirectUris =
                     {
                         "https://localhost:44318/signout-callback-oidc",
@@ -130,7 +129,6 @@ namespace Marvin.IDP
                         "https://localhost:4200/"
                     }
                 },
-
                  new Client
                 {
                     ClientName = "Sample On Behalf Of Client",
@@ -147,14 +145,8 @@ namespace Marvin.IDP
                     ClientSecrets =
                     {
                         new Secret("secret".Sha256())
-                    },
-
-                    //PostLogoutRedirectUris =
-                    //{
-                    //    "https://localhost:44318/signout-callback-oidc"
-                    //}
-                },
-
+                    }
+                }
              };
         }
     }

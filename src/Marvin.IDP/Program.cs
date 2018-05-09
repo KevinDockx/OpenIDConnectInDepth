@@ -29,7 +29,7 @@ namespace Marvin.IDP
             }
 
             // run the web app
-            host.Run();                         
+            host.Run();
         }
 
         public static IWebHost BuildWebHost(string[] args) =>
