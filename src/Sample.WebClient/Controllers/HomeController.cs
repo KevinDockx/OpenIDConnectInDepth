@@ -58,6 +58,26 @@ namespace Sample.WebClient.Controllers
 
         public async Task Logout()
         {
+            RevokeTokens();
+            await HttpContext.SignOutAsync("Cookies");
+            await HttpContext.SignOutAsync("oidc");
+        }
+
+        [AllowAnonymous]
+        public async Task<IActionResult> IDPTriggeredLogout()
+        {
+            if (User.Identity.IsAuthenticated)
+            {
+                RevokeTokens();
+                await HttpContext.SignOutAsync("Cookies");
+                await HttpContext.SignOutAsync("oidc");             
+            }
+
+            return NoContent();
+        }
+        
+        public async void RevokeTokens()
+        {  
             // get the metadata
             var discoveryClient = new DiscoveryClient("https://localhost:44379/");
             var metaDataResponse = await discoveryClient.GetAsync();
@@ -99,22 +119,7 @@ namespace Sample.WebClient.Controllers
                         , revokeRefreshTokenResponse.Exception);
                 }
             }
-
-            await HttpContext.SignOutAsync("Cookies");
-            await HttpContext.SignOutAsync("oidc");
-        }
-
-        [AllowAnonymous]
-        public async Task<IActionResult> IDPTriggeredLogout()
-        {
-            if (User.Identity.IsAuthenticated)
-            {
-                await HttpContext.SignOutAsync("Cookies");
-                await HttpContext.SignOutAsync("oidc");             
-            }
-
-            return NoContent();
-        }
+        }       
 
         public async Task WriteOutIdentityInformation()
         {
