@@ -15,7 +15,8 @@ export const environment = {
     scope: 'openid profile sampleapi',
     automaticSilentRenew: true,
     silent_redirect_uri: 'https://localhost:4200/redirect-silentrenew',
-    loadUserInfo: true
+    loadUserInfo: true,
+    revokeAccessTokenOnSignout: true
     }
 };
  
