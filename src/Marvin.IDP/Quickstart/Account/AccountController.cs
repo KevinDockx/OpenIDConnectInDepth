@@ -319,7 +319,7 @@ namespace IdentityServer4.Quickstart.UI
             // if tenant = WhiteHouse, use local auth (Frank & Claire Underwood)
             // otherwise, use an external provider (Google auth in our case) 
 
-            if (context.Tenant.ToLowerInvariant() == "whitehouse")
+            if (context.Tenant?.ToLowerInvariant() == "whitehouse")
             {
                 return new LoginViewModel
                 {
