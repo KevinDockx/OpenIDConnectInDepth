@@ -25,7 +25,7 @@ export class HomeComponent implements OnInit, OnDestroy {
       .getClaims()
       .takeUntil(this.ngUnsubscribe)
       .subscribe(claimsFromApi => {
-        this.claims = this.claims.concat(this.claims, claimsFromApi);
+        this.claims = this.claims.concat(claimsFromApi);
       });
   }
 
