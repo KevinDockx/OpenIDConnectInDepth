@@ -58,7 +58,7 @@ namespace Sample.WebClient.Controllers
 
         public async Task Logout()
         {
-            RevokeTokens();
+            await RevokeTokens();
             await HttpContext.SignOutAsync("Cookies");
             await HttpContext.SignOutAsync("oidc");
         }
@@ -68,7 +68,7 @@ namespace Sample.WebClient.Controllers
         {
             if (User.Identity.IsAuthenticated)
             {
-                RevokeTokens();
+                await RevokeTokens();
                 await HttpContext.SignOutAsync("Cookies");
                 await HttpContext.SignOutAsync("oidc");             
             }
@@ -76,7 +76,7 @@ namespace Sample.WebClient.Controllers
             return NoContent();
         }
         
-        public async void RevokeTokens()
+        public async Task RevokeTokens()
         {  
             // get the metadata
             var discoveryClient = new DiscoveryClient("https://localhost:44379/");
