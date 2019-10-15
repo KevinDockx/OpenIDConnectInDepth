@@ -1,5 +1,4 @@
-﻿@model Sample.WebClient.ViewModels.CallApiViewModel
-@using Sample.WebClient.Services
+﻿@using Sample.WebClient.Services
 
 @inject ITenantSelector<Tenant> TenantSelector
 
@@ -37,7 +36,7 @@
     </div>
 
     <div class="h4">Response from API</div>
-    @foreach (var claimString in Model.ClaimsFromApi)
+    @foreach (var claimString in ViewBag.ClaimsFromApi)
     {
     <div class="h5">@claimString</div>
     }

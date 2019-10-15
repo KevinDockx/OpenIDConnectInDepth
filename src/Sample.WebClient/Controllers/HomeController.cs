@@ -29,25 +29,24 @@ namespace Sample.WebClient.Controllers
         // GET: Home
         public async Task<IActionResult> Index()
         {
-            await WriteOutIdentityInformation();
-            return View(new CallApiViewModel());
+            await SetViewBag(new List<string>());
+            return View();
         }
 
         public async Task<IActionResult> CallApi()
         {
             // call the API 
             var httpClient = _httpClientFactory.CreateClient("APIClient");
-
+            // pass token 
+            httpClient.SetBearerToken(await HttpContext.GetTokenAsync(OpenIdConnectParameterNames.AccessToken));
             var response = await httpClient.GetAsync("api/claims");
 
             if (response.IsSuccessStatusCode)
             {
                 var claimsFromApiAsString = await response.Content.ReadAsStringAsync();
 
-                var callApiViewModel = new CallApiViewModel(
-                    JsonConvert.DeserializeObject<IList<string>>(claimsFromApiAsString));
-
-                return View("Index", callApiViewModel);
+                await SetViewBag(JsonConvert.DeserializeObject<IList<string>>(claimsFromApiAsString));
+                return View("Index");
             }
             else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized ||
                     response.StatusCode == System.Net.HttpStatusCode.Forbidden)
@@ -55,8 +54,8 @@ namespace Sample.WebClient.Controllers
                 return RedirectToAction("AccessDenied", "Authorization");
             }
 
-            await SetViewBag();
-            return View("Index", new CallApiViewModel());
+            await SetViewBag(new List<string>());
+            return View("Index");
         }
 
         public async Task Logout()
@@ -99,6 +98,7 @@ namespace Sample.WebClient.Controllers
                 var revokeAccessTokenResponse = await idpClient.RevokeTokenAsync(
                     new TokenRevocationRequest
                     {
+                        Address = discoveryDocumentResponse.RevocationEndpoint,
                         ClientId = "samplewebclient",
                         ClientSecret = "secret",
                         Token = accessToken
@@ -120,6 +120,7 @@ namespace Sample.WebClient.Controllers
                 var revokeRefreshTokenResponse = await idpClient.RevokeTokenAsync(
                     new TokenRevocationRequest
                     {
+                        Address = discoveryDocumentResponse.RevocationEndpoint,
                         ClientId = "samplewebclient",
                         ClientSecret = "secret",
                         Token = refreshToken
@@ -132,10 +133,11 @@ namespace Sample.WebClient.Controllers
                 }
             }
         }
-        private async Task SetViewBag()
+        private async Task SetViewBag(IEnumerable<string> claimsFromApi)
         {
             ViewBag.IdentityToken = await HttpContext.GetTokenAsync(OpenIdConnectParameterNames.IdToken);
             ViewBag.AccessToken = await HttpContext.GetTokenAsync(OpenIdConnectParameterNames.AccessToken);
+            ViewBag.ClaimsFromApi = claimsFromApi;
         }
 
         public async Task WriteOutIdentityInformation()
