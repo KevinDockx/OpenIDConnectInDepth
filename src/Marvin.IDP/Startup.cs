@@ -51,7 +51,7 @@ namespace Marvin.IDP
                     // this enables automatic token cleanup. this is optional.
                     options.EnableTokenCleanup = true;
                 })
-                .AddExtensionGrantValidator<OnBehalfOfGrantValidator>();
+                .AddExtensionGrantValidator<TokenExchangeExtensionGrantValidator>();
             
             services.AddAuthentication()
                 .AddGoogle("Google", options =>
