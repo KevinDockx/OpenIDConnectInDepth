@@ -55,6 +55,7 @@ namespace Sample.WebClient.Controllers
                 return RedirectToAction("AccessDenied", "Authorization");
             }
 
+            await SetViewBag();
             return View("Index", new CallApiViewModel());
         }
 
@@ -130,6 +131,11 @@ namespace Sample.WebClient.Controllers
                         revokeRefreshTokenResponse.Exception);
                 }
             }
+        }
+        private async Task SetViewBag()
+        {
+            ViewBag.IdentityToken = await HttpContext.GetTokenAsync(OpenIdConnectParameterNames.IdToken);
+            ViewBag.AccessToken = await HttpContext.GetTokenAsync(OpenIdConnectParameterNames.AccessToken);
         }
 
         public async Task WriteOutIdentityInformation()

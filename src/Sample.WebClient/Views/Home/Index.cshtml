@@ -4,27 +4,41 @@
 @inject ITenantSelector<Tenant> TenantSelector
 
 <div class="container">
-    @foreach (var claim in User.Claims)
-    {
-        <div class="h5">@claim.Type</div>
-        <div class="h5">@claim.Value</div>
-    }
+
+    <h3>Identity token</h3>
+    <p>@ViewBag.IdentityToken</p>
+
+    <h3>Access token</h3>
+    <p>@ViewBag.AccessToken</p>
+
+    <h3>Claims</h3>
+    <dl>
+        @foreach (var claim in User.Claims)
+             {
+        <dt>
+            @claim.Type
+        </dt>
+        <dd>
+            @claim.Value
+        </dd>
+              }
+    </dl>
 
     <div>
         @if (TenantSelector.Select().Identifier == "whitehouse")
         {
-            <a asp-action="CallApi" asp-controller="Home" class="btn btn-primary" 
-               style="background: #8d6121; border: #8d6121">Call API</a>
+        <a asp-action="CallApi" asp-controller="Home" class="btn btn-primary"
+           style="background: #8d6121; border: #8d6121">Call API</a>
         }
         else
         {
-            <a asp-action="CallApi" asp-controller="Home" class="btn btn-primary">Call API</a>
+        <a asp-action="CallApi" asp-controller="Home" class="btn btn-primary">Call API</a>
         }
     </div>
 
     <div class="h4">Response from API</div>
     @foreach (var claimString in Model.ClaimsFromApi)
     {
-        <div class="h5">@claimString</div>
+    <div class="h5">@claimString</div>
     }
 </div> 
