@@ -20,13 +20,14 @@ namespace Sample.WebClient
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
+
             JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
         }
 
         public void ConfigureServices(IServiceCollection services)
         {
             // Add framework services.
-           services.AddMvc();
+            services.AddMvc();
 
             // register an IHttpContextAccessor so we can access the current
             // HttpContext in services by injecting it
