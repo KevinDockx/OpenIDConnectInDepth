@@ -10,6 +10,7 @@ using Sample.WebClient.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Net.Http;
 using System.Threading.Tasks;
 
 namespace Sample.WebClient.Controllers
@@ -17,11 +18,12 @@ namespace Sample.WebClient.Controllers
     [Authorize]
     public class HomeController : Controller
     {
-        private readonly ISampleHttpClient _sampleHttpClient;
+        private readonly IHttpClientFactory _httpClientFactory;
 
-        public HomeController(ISampleHttpClient sampleHttpClient)
+        public HomeController(IHttpClientFactory httpClientFactory)
         {
-            _sampleHttpClient = sampleHttpClient;
+            _httpClientFactory = httpClientFactory ??
+                throw new ArgumentNullException(nameof(httpClientFactory));
         }
 
         // GET: Home
@@ -33,14 +35,14 @@ namespace Sample.WebClient.Controllers
         
         public async Task<IActionResult> CallApi()
         {
-            // call the API
-            var httpClient = await _sampleHttpClient.GetClient();
+            // call the API 
+            var httpClient = _httpClientFactory.CreateClient("APIClient");
 
-            var response = await httpClient.GetAsync("api/claims").ConfigureAwait(false);
+            var response = await httpClient.GetAsync("api/claims");
 
             if (response.IsSuccessStatusCode)
             {
-                var claimsFromApiAsString = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                var claimsFromApiAsString = await response.Content.ReadAsStringAsync();
 
                 var callApiViewModel = new CallApiViewModel(
                     JsonConvert.DeserializeObject<IList<string>>(claimsFromApiAsString));
@@ -136,6 +138,5 @@ namespace Sample.WebClient.Controllers
                 Debug.WriteLine($"Claim type: {claim.Type} - Claim value: {claim.Value}");
             }
         }
-
     }
 }

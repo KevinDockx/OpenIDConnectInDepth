@@ -8,6 +8,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using Sample.WebClient.Services;
+using System;
 using System.IdentityModel.Tokens.Jwt;
 using System.Threading.Tasks;
 
@@ -27,14 +28,7 @@ namespace Sample.WebClient
         public void ConfigureServices(IServiceCollection services)
         {
             // Add framework services.
-            services.AddMvc();
-
-            // register an IHttpContextAccessor so we can access the current
-            // HttpContext in services by injecting it
-            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
-
-            // register an ISampleHttpClient
-            services.AddScoped<ISampleHttpClient, SampleHttpClient>();
+            services.AddMvc();      
 
             // register the TenantSelector scoped (so it's created once per request)
             services.AddScoped<ITenantSelector<Tenant>, TenantSelector>();
@@ -57,6 +51,8 @@ namespace Sample.WebClient
                   options.ClientId = "samplewebclient";
                   options.ResponseType = "code id_token";
 
+                  // openid & profile are auto-added - just showing this
+                  // for demo purposes
                   options.Scope.Add("openid");
                   options.Scope.Add("profile");
                   options.Scope.Add("sampleapi");
@@ -100,6 +96,16 @@ namespace Sample.WebClient
                       }
                   };
               });
+
+            services.AddHttpClient("IDPClient", client =>
+            {
+                client.BaseAddress = new Uri("https://localhost:44379");
+            });
+
+            services.AddHttpClient("APIClient", client =>
+            {
+                client.BaseAddress = new Uri("https://localhost:44392");
+            });
         }
 
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
