@@ -32,7 +32,7 @@ namespace Sample.WebClient.Controllers
             await WriteOutIdentityInformation();
             return View(new CallApiViewModel());
         }
-        
+
         public async Task<IActionResult> CallApi()
         {
             // call the API 
@@ -72,23 +72,21 @@ namespace Sample.WebClient.Controllers
             {
                 await RevokeTokens();
                 await HttpContext.SignOutAsync("Cookies");
-                await HttpContext.SignOutAsync("oidc");             
+                await HttpContext.SignOutAsync("oidc");
             }
 
             return NoContent();
         }
-        
-        public async Task RevokeTokens()
-        {  
-            // get the metadata
-            var discoveryClient = new DiscoveryClient("https://localhost:44379/");
-            var metaDataResponse = await discoveryClient.GetAsync();
 
-            // create a TokenRevocationClient
-            var revocationClient = new TokenRevocationClient(
-                metaDataResponse.RevocationEndpoint,
-                "samplewebclient",
-                "secret");
+        public async Task RevokeTokens()
+        {
+            // get the metadata
+            var idpClient = _httpClientFactory.CreateClient("IDPClient");
+            var discoveryDocumentResponse = await idpClient.GetDiscoveryDocumentAsync();
+            if (discoveryDocumentResponse.IsError)
+            {
+                throw new Exception(discoveryDocumentResponse.Error);
+            }
 
             // get the access token to revoke 
             var accessToken = await HttpContext
@@ -96,13 +94,19 @@ namespace Sample.WebClient.Controllers
 
             if (!string.IsNullOrWhiteSpace(accessToken))
             {
-                var revokeAccessTokenResponse =
-                    await revocationClient.RevokeAccessTokenAsync(accessToken);
+                // revoke the token
+                var revokeAccessTokenResponse = await idpClient.RevokeTokenAsync(
+                    new TokenRevocationRequest
+                    {
+                        ClientId = "samplewebclient",
+                        ClientSecret = "secret",
+                        Token = accessToken
+                    });
 
                 if (revokeAccessTokenResponse.IsError)
                 {
-                    throw new Exception("Problem encountered while revoking the access token."
-                        , revokeAccessTokenResponse.Exception);
+                    throw new Exception("Problem encountered while revoking the access token.",
+                        revokeAccessTokenResponse.Exception);
                 }
             }
 
@@ -112,16 +116,21 @@ namespace Sample.WebClient.Controllers
 
             if (!string.IsNullOrWhiteSpace(refreshToken))
             {
-                var revokeRefreshTokenResponse =
-                    await revocationClient.RevokeRefreshTokenAsync(refreshToken);
+                var revokeRefreshTokenResponse = await idpClient.RevokeTokenAsync(
+                    new TokenRevocationRequest
+                    {
+                        ClientId = "samplewebclient",
+                        ClientSecret = "secret",
+                        Token = refreshToken
+                    });
 
                 if (revokeRefreshTokenResponse.IsError)
                 {
-                    throw new Exception("Problem encountered while revoking the refresh token."
-                        , revokeRefreshTokenResponse.Exception);
+                    throw new Exception("Problem encountered while revoking the refresh token.",
+                        revokeRefreshTokenResponse.Exception);
                 }
             }
-        }       
+        }
 
         public async Task WriteOutIdentityInformation()
         {
