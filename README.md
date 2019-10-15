@@ -1,5 +1,5 @@
 # OpenID Connect in Depth
-OpenID Connect code sample (Angular 5, ASP.NET Core 2.0, IdentityServer4) containing SSOn/Out, reference tokens, custom grants and multi-tenancy.  
+OpenID Connect code sample (Angular 5, ASP.NET Core 3.0, IdentityServer4) containing SSOn/Out, reference tokens, custom grants and multi-tenancy.  
 
 ## Single Sign On / Out 
 Run Angular & MVC clients - signing in is only required once.   When signing out of the IDP the other client is notified and signed out of.
