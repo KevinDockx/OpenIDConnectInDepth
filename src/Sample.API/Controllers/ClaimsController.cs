@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
@@ -14,8 +15,17 @@ namespace Sample.API.Controllers
 {
     [Authorize]
     [Route("api/claims")]
-    public class ClaimsController : Controller
+    public class ClaimsController : ControllerBase
     {
+
+        private readonly IHttpClientFactory _httpClientFactory;
+
+        public ClaimsController(IHttpClientFactory httpClientFactory)
+        {
+            _httpClientFactory = httpClientFactory ?? 
+                throw new ArgumentNullException(nameof(httpClientFactory));
+        }
+
         [HttpGet]
         public async Task<IEnumerable<string>> Get()
         {
@@ -29,46 +39,47 @@ namespace Sample.API.Controllers
 
             // call the second API - requires an access token with the
             // "samplesecondapi" scope
-            var discoveryClient = new DiscoveryClient("https://localhost:44379/");
-            var metaDataResponse = await discoveryClient.GetAsync();
 
-            // create a TokenClient
-            var tokenClient = new TokenClient(
-                metaDataResponse.TokenEndpoint,
-                "sampleonbehalfofclient",
-                "secret");
+            // get the token via the token exchange flow
+            var idpClient = _httpClientFactory.CreateClient("IDPClient");
+            var discoveryDocumentResponse = await idpClient.GetDiscoveryDocumentAsync();
+            if (discoveryDocumentResponse.IsError)
+            {
+                throw new Exception(discoveryDocumentResponse.Error);
+            }
 
-            // get current access token
-            var accessToken = await HttpContext.GetTokenAsync(OpenIdConnectParameterNames.AccessToken);
+            var customParams = new Dictionary<string, string>
+            {
+                { "subject_token_type",  "urn:ietf:params:oauth:token-type:access_token"},
+                { "subject_token", await HttpContext.GetTokenAsync(OpenIdConnectParameterNames.AccessToken) },
+                { "scope", "profile samplesecondapi" }
+            };
 
-            var additionalParameters = new Dictionary<string, string>();
-            additionalParameters.Add("assertion", accessToken);
-            additionalParameters.Add("requested_token_use", "on_behalf_of");
+            var tokenResponse = await idpClient.RequestTokenAsync(new TokenRequest()
+            {
+                Address = discoveryDocumentResponse.TokenEndpoint,
+                GrantType = "urn:ietf:params:oauth:grant-type:token-exchange",
+                Parameters = customParams,
+                ClientId = "sampletokenexchangeclient",
+                ClientSecret = "secret"
+            });
 
-            var tokenResult = await tokenClient.RequestCustomGrantAsync("urn:ietf:params:oauth:grant-type:jwt-bearer",
-                "samplesecondapi", additionalParameters);
-
-            if (tokenResult.IsError)
+            if (tokenResponse.IsError)
             {
                 // can't call second API
                 return claimsList;
             }
 
-            // call the second API
-            var httpClient = new HttpClient();
+            // call second API on behalf of the currently identified user
+            // & add the claims returned via that API
+            var multiHopClient = _httpClientFactory.CreateClient("MultiHopClient");
+            multiHopClient.SetBearerToken(tokenResponse.AccessToken);
 
-            // set as Bearer token
-            httpClient.SetBearerToken(tokenResult.AccessToken);
-            httpClient.BaseAddress = new Uri("https://localhost:44312/");
-            httpClient.DefaultRequestHeaders.Accept.Clear();
-            httpClient.DefaultRequestHeaders.Accept.Add(
-                new MediaTypeWithQualityHeaderValue("application/json"));
-
-            var responseFromSecondApi = await httpClient.GetAsync("api/claims").ConfigureAwait(false);
+            var responseFromSecondApi = await multiHopClient.GetAsync("api/claims");
 
             if (responseFromSecondApi.IsSuccessStatusCode)
             {
-                var claimsFromSecondApiAsString = 
+                var claimsFromSecondApiAsString =
                     await responseFromSecondApi.Content.ReadAsStringAsync().ConfigureAwait(false);
 
                 claimsList.Add("------------------------------------------");
@@ -79,7 +90,7 @@ namespace Sample.API.Controllers
                     JsonConvert.DeserializeObject<IList<string>>(claimsFromSecondApiAsString));
             }
 
-            return claimsList;
+            return claimsList;        
         }
     }
 }

@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using System;
 
 namespace Sample.API
 {
@@ -31,10 +33,20 @@ namespace Sample.API
                  options.SaveToken = true;
              });
 
+            services.AddHttpClient("IDPClient", client =>
+            {
+                client.BaseAddress = new Uri("https://localhost:44379");
+            });
+
+            services.AddHttpClient("MultiHopClient", client =>
+            {
+                client.BaseAddress = new Uri("https://localhost:44312");
+                client.DefaultRequestHeaders.Add("Accept", "application/json");
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             if (env.IsDevelopment())
             {
@@ -45,8 +57,15 @@ namespace Sample.API
             app.UseCors(c => c.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
 
             app.UseAuthentication();
+            
+            app.UseRouting();
 
-            app.UseMvc();
+            app.UseAuthorization();
+
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapControllers();
+            });             
         }
     }
 }

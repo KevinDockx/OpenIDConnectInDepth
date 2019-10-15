@@ -131,9 +131,9 @@ namespace Marvin.IDP
                 },
                  new Client
                 {
-                    ClientName = "Sample On Behalf Of Client",
-                    ClientId = "sampleonbehalfofclient",
-                    AllowedGrantTypes = new[] { "urn:ietf:params:oauth:grant-type:jwt-bearer" },
+                    ClientName = "Sample Token Exchange Client",
+                    ClientId = "sampletokenexchangeclient",
+                    AllowedGrantTypes = new[] { "urn:ietf:params:oauth:grant-type:token-exchange" },
                     RequireConsent = false,
 
                     AllowedScopes =
