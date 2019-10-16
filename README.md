@@ -1,5 +1,5 @@
 # OpenID Connect in Depth
-OpenID Connect code sample (Angular 5, ASP.NET Core 2.0, IdentityServer4) containing SSOn/Out, reference tokens, custom grants and multi-tenancy.  
+OpenID Connect code sample (Angular 5, ASP.NET Core 3.0, IdentityServer4) containing SSOn/Out, reference tokens, custom grants and multi-tenancy.  
 
 ## Single Sign On / Out 
 Run Angular & MVC clients - signing in is only required once.   When signing out of the IDP the other client is notified and signed out of.
@@ -10,7 +10,7 @@ Sample.API expects a reference token and validates this with the IDP on each cal
 ## Custom grant
 When calling Sample.SecondAPI from Sample.API a new access token is requested (keepin the identity of the current user) with the required scope for the second API.  
 
-The custom grant is an "on behalf of" grant.  This allows the user's identity to flow through a set of APIs, avoids access tokens that are too permissive (audience too large) and allows checking user rights to a certain API (scope) when exchanging the token.
+The custom grant is a token exchange grant.  This allows the user's identity to flow through a set of APIs, avoids access tokens that are too permissive (audience too large) and allows checking user rights to a certain API (scope) when exchanging the token.
 
 ## Multi-tenancy
 Test by launching on the correct host.  Tenant 1 = https://localhost:44318, Tenant 2 = https://localhost:44319
